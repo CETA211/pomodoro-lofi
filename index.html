@@ -348,80 +348,95 @@
     }
     .channel-link:hover { text-decoration: underline; }
 
+    /* ytFrame は active carousel-item の中で絶対配置 */
     #yt-frame {
+      position: absolute;
+      inset: 0;
       width: 100%;
-      aspect-ratio: 16/9;
+      height: 100%;
       background: #000;
-      display: block;
     }
     #yt-frame iframe {
       width: 100% !important;
       height: 100% !important;
       display: block;
     }
-/* Video slider */
-    .video-slider-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+
+    /* ── Carousel ── */
+    .carousel-outer {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius);
+      /* scale overflow を見せるため上下にパディング */
+      padding: 10px 0;
     }
-    .video-slider-arrow {
-      flex-shrink: 0;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+    .carousel-track {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background .15s;
-      user-select: none;
-      padding: 0;
-      line-height: 1;
-      -webkit-appearance: none;
+      gap: 10px;
+      will-change: transform;
+      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .video-slider-arrow:hover { background: var(--border); }
-    .video-slider-track {
-      flex: 1;
-      display: flex;
-      gap: 8px;
-    }
-    .video-thumb {
-      flex: 1;
+    .carousel-item {
+      flex: 0 0 78%;
+      aspect-ratio: 16/9;
       position: relative;
       border-radius: 8px;
       overflow: hidden;
+      background: #000;
       cursor: pointer;
-      border: 2px solid transparent;
-      transition: border-color .2s, transform .15s;
-      background: var(--surface2);
+      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity  0.42s ease,
+                  box-shadow 0.42s ease;
+      transform: scale(0.86);
+      opacity: 0.55;
     }
-    .video-thumb:hover { transform: translateY(-2px); border-color: var(--accent); }
-    .video-thumb.active { border-color: var(--accent); transform: none; cursor: default; }
-    .video-thumb img {
+    .carousel-item.active {
+      transform: scale(1);
+      opacity: 1;
+      cursor: default;
+      box-shadow: 0 4px 24px rgba(0,0,0,.4);
+    }
+    .carousel-item img {
       width: 100%;
-      aspect-ratio: 16/9;
-      display: block;
+      height: 100%;
       object-fit: cover;
+      display: block;
     }
-    .video-thumb-overlay {
+    .carousel-item-overlay {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.35);
-      font-size: 24px;
-      color: white;
+      background: rgba(0,0,0,.3);
       opacity: 0;
       transition: opacity .2s;
     }
-    .video-thumb:hover .video-thumb-overlay,
-    .video-thumb.active .video-thumb-overlay { opacity: 1; }
+    .carousel-item:hover .carousel-item-overlay { opacity: 1; }
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      background: rgba(0,0,0,.45);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background .15s;
+      padding: 0;
+      line-height: 1;
+      -webkit-appearance: none;
+    }
+    .carousel-arrow:hover { background: rgba(0,0,0,.7); }
+    .carousel-arrow.prev { left: 8px; }
+    .carousel-arrow.next { right: 8px; }
 
     .bgm-desc {
       background: var(--surface);
@@ -528,7 +543,7 @@
         </svg>
       </button>
       <button class="btn btn-start" id="btn-start" onclick="toggleTimer()">
-        <svg id="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="transform:translateX(2px)"
+        <svg id="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="transform:translateX(2px)">
           <path d="M8 5v14l11-7z"/>
         </svg>
         <svg id="icon-pause" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none">
@@ -606,11 +621,11 @@
       </a>
     </div>
 
-    <!-- Video slider (選択した枠がそのままプレイヤーになる) -->
-    <div class="video-slider-wrap">
-      <button class="video-slider-arrow" onclick="slideVideo(-1)">&#8249;</button>
-      <div class="video-slider-track" id="slider-track"></div>
-      <button class="video-slider-arrow" onclick="slideVideo(1)">&#8250;</button>
+    <!-- Carousel -->
+    <div class="carousel-outer" id="carousel-outer">
+      <button class="carousel-arrow prev" onclick="slideVideo(-1)">&#8249;</button>
+      <div class="carousel-track" id="carousel-track"></div>
+      <button class="carousel-arrow next" onclick="slideVideo(1)">&#8250;</button>
     </div>
 
     <div class="bgm-desc">
@@ -854,13 +869,15 @@ function toggleTheme() {
 
 // ─── YouTube IFrame API ───────────────────────────────────
 const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', '8JSB-CdLeoY', 'zPZgTtF2uLw'];
-let activeThumb  = 0;
-let sliderOffset = 0;
+let activeThumb  = 0;   // 現在再生中の動画インデックス
+let sliderOffset = 0;   // カルーセル先頭のインデックス（無限ループ）
 let ytApiLoaded  = false;
 
-// プレイヤーコンテナを永続要素として保持（再生中にスライドしても破棄されない）
+// ytFrameEl: プレイヤーコンテナを永続DOM要素として保持
 const ytFrameEl = document.createElement('div');
 ytFrameEl.id = 'yt-frame';
+
+const PLAY_SVG = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="transform:translateX(2px)"><path d="M8 5v14l11-7z"/></svg>`;
 
 function loadYTApi() {
   if (ytApiLoaded) return;
@@ -871,40 +888,87 @@ function loadYTApi() {
 }
 window.onYouTubeIframeAPIReady = function() {};
 
-// ─── Slider ───────────────────────────────────────────────
-const PLAY_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="transform:translateX(2px)"><path d="M8 5v14l11-7z"/></svg>`;
+// ─── Carousel ─────────────────────────────────────────────
+const VISIBLE = 3;  // 表示アイテム数（左ペーク・中央・右ペーク）
 
-function renderSlider() {
-  const track = document.getElementById('slider-track');
-  // ytFrameEl を一時退避（DOMから消える前に保持）
-  const saved = ytFrameEl.parentNode ? ytFrameEl : null;
+function getTranslateX() {
+  const outer = document.getElementById('carousel-outer');
+  if (!outer) return 0;
+  const W       = outer.clientWidth;
+  const itemPct = 0.78;
+  const itemW   = W * itemPct;
+  const gap     = 10;
+  const stride  = itemW + gap;
+  // 常にスロット0（sliderOffset）を左端に置き、中央スロットがアクティブになるよう計算
+  // アクティブは常にスロット1（中央）
+  const peekW = (W - itemW) / 2;  // 左右のはみ出し幅
+  return peekW - stride;           // スロット0を左ペーク位置に
+}
+
+function buildCarousel() {
+  const track = document.getElementById('carousel-track');
+  if (!track) return;
 
   track.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const idx = (sliderOffset + i) % VIDEO_IDS.length;
-    const isActive = idx === activeThumb;
-    const el = document.createElement('div');
-    el.className = 'video-thumb' + (isActive ? ' active' : '');
+  // スロット 0=左ペーク, 1=中央(active), 2=右ペーク の計3枚
+  for (let slot = 0; slot < VISIBLE; slot++) {
+    const idx = (sliderOffset + slot) % VIDEO_IDS.length;
+    const isActive = idx === activeThumb && slot === 1;
+
+    const item = document.createElement('div');
+    item.className = 'carousel-item' + (isActive ? ' active' : '');
 
     if (isActive) {
-      el.appendChild(ytFrameEl);
+      item.appendChild(ytFrameEl);
     } else {
-      el.innerHTML = `<img src="https://img.youtube.com/vi/${VIDEO_IDS[idx]}/mqdefault.jpg" alt="Lofi BGM Vol.${idx+1}" loading="lazy"><div class="video-thumb-overlay">${PLAY_SVG}</div>`;
-      el.onclick = () => selectVideo(idx);
+      item.innerHTML = `<img src="https://img.youtube.com/vi/${VIDEO_IDS[idx]}/mqdefault.jpg" alt="Lofi BGM" loading="lazy"><div class="carousel-item-overlay">${PLAY_SVG}</div>`;
+      item.onclick = () => selectVideo(idx);
     }
-    track.appendChild(el);
+    track.appendChild(item);
   }
+
+  track.style.transition = 'none';  // 初期配置はアニメなし
+  track.style.transform  = `translateX(${getTranslateX()}px)`;
 }
 
 function slideVideo(dir) {
-  sliderOffset = (sliderOffset + dir + VIDEO_IDS.length) % VIDEO_IDS.length;
-  renderSlider();
+  const track = document.getElementById('carousel-track');
+
+  // スライド先のインデックス
+  const nextOffset = (sliderOffset + dir + VIDEO_IDS.length) % VIDEO_IDS.length;
+  const nextActive = (nextOffset + 1) % VIDEO_IDS.length;  // 中央スロット
+
+  // 現在のアイテム幅・stride を計算
+  const outer  = document.getElementById('carousel-outer');
+  const W      = outer.clientWidth;
+  const itemW  = W * 0.78;
+  const stride = itemW + 10;
+
+  // アニメーション: dir方向にstrideだけトランスレート
+  track.style.transition = 'transform 0.42s cubic-bezier(0.4, 0, 0.2, 1)';
+  const currentX = getTranslateX();
+  track.style.transform  = `translateX(${currentX - dir * stride}px)`;
+
+  // トランジション完了後に再描画
+  track.addEventListener('transitionend', function onEnd() {
+    track.removeEventListener('transitionend', onEnd);
+    sliderOffset = nextOffset;
+    activeThumb  = nextActive;
+    buildCarousel();
+
+    // アクティブになった動画を自動再生（既に同じ動画なら継続）
+    if (nextActive !== activeThumb || !ytPlayer) {
+      selectVideo(nextActive);
+    }
+  }, { once: true });
 }
 
 function selectVideo(index) {
   loadYTApi();
-  activeThumb = index;
-  renderSlider();
+  activeThumb  = index;
+  // sliderOffsetを調整してindexが中央スロットに来るようにする
+  sliderOffset = (index - 1 + VIDEO_IDS.length) % VIDEO_IDS.length;
+  buildCarousel();
 
   if (ytPlayer) {
     try { ytPlayer.destroy(); } catch(e) {}
@@ -925,10 +989,24 @@ function selectVideo(index) {
   createPlayer();
 }
 
+// リサイズ時に位置を再計算
+window.addEventListener('resize', () => {
+  const track = document.getElementById('carousel-track');
+  if (track) {
+    track.style.transition = 'none';
+    track.style.transform  = `translateX(${getTranslateX()}px)`;
+  }
+});
+
 // ─── Init ─────────────────────────────────────────────────
 updateDisplay();
-renderSlider();
-selectVideo(0);
+// DOMが確定してからカルーセルを初期化
+requestAnimationFrame(() => {
+  sliderOffset = VIDEO_IDS.length - 1;  // index0が中央になるよう設定
+  activeThumb  = 0;
+  buildCarousel();
+  selectVideo(0);
+});
 </script>
 
 </body>
