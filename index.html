@@ -377,7 +377,7 @@
       transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .carousel-item {
-      flex: 0 0 78%;
+      flex: 0 0 70%;
       aspect-ratio: 16/9;
       position: relative;
       border-radius: 8px;
@@ -387,8 +387,8 @@
       transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
                   opacity  0.42s ease,
                   box-shadow 0.42s ease;
-      transform: scale(0.86);
-      opacity: 0.55;
+      transform: scale(0.68);
+      opacity: 0.45;
     }
     .carousel-item.active {
       transform: scale(1);
@@ -543,7 +543,7 @@
         </svg>
       </button>
       <button class="btn btn-start" id="btn-start" onclick="toggleTimer()">
-        <svg id="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="transform:translateX(2px)">
+        <svg id="icon-play" width="24" height="24" viewBox="2 0 22 24" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
         </svg>
         <svg id="icon-pause" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none">
@@ -869,15 +869,15 @@ function toggleTheme() {
 
 // ─── YouTube IFrame API ───────────────────────────────────
 const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', '8JSB-CdLeoY', 'zPZgTtF2uLw'];
-let activeThumb  = 0;   // 現在再生中の動画インデックス
-let sliderOffset = 0;   // カルーセル先頭のインデックス（無限ループ）
-let ytApiLoaded  = false;
+const N = VIDEO_IDS.length;
+let activeIndex = 0;   // 中央に表示・再生中の動画index（これだけで管理）
+let ytApiLoaded = false;
+let sliding     = false;
 
-// ytFrameEl: プレイヤーコンテナを永続DOM要素として保持
 const ytFrameEl = document.createElement('div');
 ytFrameEl.id = 'yt-frame';
 
-const PLAY_SVG = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white" style="transform:translateX(2px)"><path d="M8 5v14l11-7z"/></svg>`;
+const PLAY_SVG = `<svg width="28" height="28" viewBox="2 0 22 24" fill="white"><path d="M8 5v14l11-7z"/></svg>`;
 
 function loadYTApi() {
   if (ytApiLoaded) return;
@@ -889,85 +889,66 @@ function loadYTApi() {
 window.onYouTubeIframeAPIReady = function() {};
 
 // ─── Carousel ─────────────────────────────────────────────
-const VISIBLE = 3;  // 表示アイテム数（左ペーク・中央・右ペーク）
-
-function getTranslateX() {
+function getLayout() {
   const outer = document.getElementById('carousel-outer');
-  if (!outer) return 0;
-  const W       = outer.clientWidth;
-  const itemPct = 0.78;
-  const itemW   = W * itemPct;
-  const gap     = 10;
-  const stride  = itemW + gap;
-  // 常にスロット0（sliderOffset）を左端に置き、中央スロットがアクティブになるよう計算
-  // アクティブは常にスロット1（中央）
-  const peekW = (W - itemW) / 2;  // 左右のはみ出し幅
-  return peekW - stride;           // スロット0を左ペーク位置に
+  const W     = outer ? outer.clientWidth : 300;
+  const itemW = W * 0.70;
+  const gap   = 10;
+  const stride = itemW + gap;
+  // slot1（中央）をouterの中央に揃えるtranslateX
+  const tx = (W - itemW) / 2 - stride;
+  return { W, itemW, stride, tx };
 }
 
 function buildCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
+  const { stride, tx } = getLayout();
 
   track.innerHTML = '';
-  // スロット 0=左ペーク, 1=中央(active), 2=右ペーク の計3枚
-  for (let slot = 0; slot < VISIBLE; slot++) {
-    const idx = (sliderOffset + slot) % VIDEO_IDS.length;
-    const isActive = idx === activeThumb && slot === 1;
-
+  // slot0=左ペーク, slot1=中央(active), slot2=右ペーク
+  for (let slot = 0; slot < 3; slot++) {
+    const idx = (activeIndex - 1 + slot + N * 10) % N;
+    const isActive = slot === 1;
     const item = document.createElement('div');
     item.className = 'carousel-item' + (isActive ? ' active' : '');
 
     if (isActive) {
       item.appendChild(ytFrameEl);
     } else {
+      const capturedIdx = idx;
       item.innerHTML = `<img src="https://img.youtube.com/vi/${VIDEO_IDS[idx]}/mqdefault.jpg" alt="Lofi BGM" loading="lazy"><div class="carousel-item-overlay">${PLAY_SVG}</div>`;
-      item.onclick = () => selectVideo(idx);
+      item.addEventListener('click', () => selectVideo(capturedIdx));
     }
     track.appendChild(item);
   }
-
-  track.style.transition = 'none';  // 初期配置はアニメなし
-  track.style.transform  = `translateX(${getTranslateX()}px)`;
+  track.style.transition = 'none';
+  track.style.transform  = `translateX(${tx}px)`;
 }
 
 function slideVideo(dir) {
+  if (sliding) return;
+  sliding = true;
+
   const track = document.getElementById('carousel-track');
+  if (!track) { sliding = false; return; }
+  const { stride, tx } = getLayout();
 
-  // スライド先のインデックス
-  const nextOffset = (sliderOffset + dir + VIDEO_IDS.length) % VIDEO_IDS.length;
-  const nextActive = (nextOffset + 1) % VIDEO_IDS.length;  // 中央スロット
-
-  // 現在のアイテム幅・stride を計算
-  const outer  = document.getElementById('carousel-outer');
-  const W      = outer.clientWidth;
-  const itemW  = W * 0.78;
-  const stride = itemW + 10;
-
-  // アニメーション: dir方向にstrideだけトランスレート
   track.style.transition = 'transform 0.42s cubic-bezier(0.4, 0, 0.2, 1)';
-  const currentX = getTranslateX();
-  track.style.transform  = `translateX(${currentX - dir * stride}px)`;
+  track.style.transform  = `translateX(${tx - dir * stride}px)`;
 
-  // トランジション完了後に再描画
   track.addEventListener('transitionend', function onEnd() {
     track.removeEventListener('transitionend', onEnd);
-    sliderOffset = nextOffset;
-    activeThumb  = nextActive;
+    activeIndex = (activeIndex + dir + N) % N;
     buildCarousel();
-
-    // アクティブになった動画を自動再生（既に同じ動画なら継続）
-    if (nextActive !== activeThumb || !ytPlayer) {
-      selectVideo(nextActive);
-    }
+    selectVideo(activeIndex);
+    sliding = false;
   }, { once: true });
 }
 
 function selectVideo(index) {
   loadYTApi();
-  activeThumb  = index;
-  // sliderOffsetを調整してindexが中央スロットに来るようにする
-  sliderOffset = (index - 1 + VIDEO_IDS.length) % VIDEO_IDS.length;
+  activeIndex = index;
   buildCarousel();
 
   if (ytPlayer) {
@@ -989,21 +970,17 @@ function selectVideo(index) {
   createPlayer();
 }
 
-// リサイズ時に位置を再計算
 window.addEventListener('resize', () => {
   const track = document.getElementById('carousel-track');
-  if (track) {
-    track.style.transition = 'none';
-    track.style.transform  = `translateX(${getTranslateX()}px)`;
-  }
+  if (!track) return;
+  const { tx } = getLayout();
+  track.style.transition = 'none';
+  track.style.transform  = `translateX(${tx}px)`;
 });
 
 // ─── Init ─────────────────────────────────────────────────
 updateDisplay();
-// DOMが確定してからカルーセルを初期化
 requestAnimationFrame(() => {
-  sliderOffset = VIDEO_IDS.length - 1;  // index0が中央になるよう設定
-  activeThumb  = 0;
   buildCarousel();
   selectVideo(0);
 });
