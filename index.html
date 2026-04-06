@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Timer × Lofi BGM | ChillxGirl-YT</title>
+  <style>
+    /* ─── Reset & Vars ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Light mode (default) ── */
+    :root {
+      --bg-grad:  linear-gradient(145deg, #cce8f0 0%, #a8d8e8 45%, #c8e8df 100%);
+      --surface:  rgba(195,228,240,0.60);
+      --surface2: rgba(175,215,230,0.50);
+      --border:   rgba(90,180,210,0.35);
+      --accent:   #0277bd;
+      --accent2:  #00838f;
+      --break:    #2e7d6e;
+      --lbreak:   #5b7fa6;
+      --text:     #013a5c;
+      --muted:    #3a6a7a;
+      --shadow:   0 4px 20px rgba(2,119,189,.15);
+      --radius:   14px;
+    }
+
+    /* ── Dark mode ── */
+    [data-theme="dark"] {
+      --bg-grad:  linear-gradient(145deg, #04111e 0%, #062030 35%, #092a3a 65%, #051820 100%);
+      --surface:  rgba(6,26,44,0.78);
+      --surface2: rgba(4,18,32,0.68);
+      --border:   rgba(0,140,190,0.22);
+      --accent:   #29b6f6;
+      --accent2:  #4dd0e1;
+      --break:    #4db6ac;
+      --lbreak:   #7eb8d4;
+      --text:     #ddf0f8;
+      --muted:    #6aaec0;
+      --shadow:   0 4px 20px rgba(0,0,0,.55);
+      --radius:   14px;
+    }
+
+    html, body {
+      height: 100%;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: var(--bg-grad);
+      background-attachment: fixed;
+    }
+
+    /* ─── Theme toggle ─── */
+    .theme-btn {
+      position: fixed;
+      top: 16px; right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ─── Header ─── */
+    header {
+      text-align: center;
+      padding: 28px 20px 0;
+    }
+    header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    header a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+    }
+    header a:hover { text-decoration: underline; }
+
+    /* ─── Main Layout ─── */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 32px;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px 40px;
+      align-items: start;
+    }
+
+    /* ─── Timer Card ─── */
+    .timer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 28px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Mode tabs */
+    .mode-tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 4px;
+      border: 1px solid var(--border);
+    }
+    .mode-tab {
+      padding: 6px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all .2s;
+    }
+    .mode-tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    .mode-tab.active[data-mode="break"]  { background: var(--break); }
+    .mode-tab.active[data-mode="lbreak"] { background: var(--lbreak); }
+
+    /* Circular timer */
+    .timer-ring-wrap {
+      position: relative;
+      width: 240px;
+      height: 240px;
+    }
+    .timer-ring-wrap svg {
+      transform: rotate(-90deg);
+    }
+    .ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+    .ring-progress {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .9s linear, stroke .3s;
+    }
+    .timer-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    #timer-display {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .timer-mode-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    /* Controls */
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn {
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-start {
+      background: var(--accent);
+      color: white;
+      padding: 12px 42px;
+      font-size: 16px;
+      min-width: 140px;
+    }
+    .btn-start:hover { filter: brightness(1.15); }
+    .btn-icon {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px 14px;
+      font-size: 16px;
+    }
+    .btn-icon:hover { color: var(--text); border-color: var(--text); }
+
+    /* Session dots */
+    .sessions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .session-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background .3s;
+    }
+    .session-dot.done { background: var(--accent); }
+    .sessions-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 6px;
+    }
+
+    /* Settings row */
+    .settings-row {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+      justify-content: center;
+    }
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .setting-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .setting-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 14px;
+      text-align: center;
+      width: 60px;
+      padding: 5px 8px;
+      outline: none;
+    }
+    .setting-input:focus { border-color: var(--accent); }
+
+    /* Sound toggle */
+    .sound-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle {
+      width: 36px; height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      position: relative;
+      transition: background .2s;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: white;
+      transition: left .2s;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle.on::after { left: 19px; }
+
+    /* ─── BGM Card ─── */
+    .bgm-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .bgm-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bgm-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+    .channel-link {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .channel-link:hover { text-decoration: underline; }
+
+    .yt-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .yt-player {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: block;
+      border: none;
+    }
+    #yt-frame { background: #000; }
+    #yt-frame iframe {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+    #yt-placeholder {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
+    }
+    #yt-placeholder .play-icon { font-size: 40px; }
+
+    /* Video selector */
+    .video-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .video-thumb {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color .2s, transform .15s;
+      background: var(--surface2);
+    }
+    .video-thumb:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .video-thumb.active { border-color: var(--accent); }
+    .video-thumb img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: block;
+      object-fit: cover;
+    }
+    .video-thumb-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+      font-size: 24px;
+      color: white;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .video-thumb:hover .video-thumb-overlay,
+    .video-thumb.active .video-thumb-overlay { opacity: 1; }
+
+    .bgm-desc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .bgm-desc strong { color: var(--text); }
+
+    /* Auto-pause notice */
+    .auto-notice {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .auto-badge {
+      font-size: 11px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 7px;
+      color: var(--accent2);
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 780px) {
+      .main {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 20px 16px 32px;
+      }
+      .bgm-card { order: -1; }
+    }
+    @media (max-width: 400px) {
+      #timer-display { font-size: 42px; }
+      .timer-ring-wrap { width: 200px; height: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙 ダーク</button>
+
+<header>
+  <h1>Pomodoro Timer</h1>
+  <p style="margin-top:6px; font-size:13px; color:var(--muted);">
+    集中作業 × <a href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener">Lofi BGM</a> で生産性UP
+  </p>
+</header>
+
+<div class="main">
+
+  <!-- ── Timer ── -->
+  <div class="timer-card">
+
+    <!-- Mode tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="work"   onclick="setMode('work')">作業</button>
+      <button class="mode-tab"        data-mode="break"  onclick="setMode('break')">休憩</button>
+      <button class="mode-tab"        data-mode="lbreak" onclick="setMode('lbreak')">長休憩</button>
+    </div>
+
+    <!-- Circular timer -->
+    <div class="timer-ring-wrap">
+      <svg width="240" height="240" viewBox="0 0 240 240">
+        <circle class="ring-bg" cx="120" cy="120" r="108"/>
+        <circle class="ring-progress" id="ring" cx="120" cy="120" r="108"
+          stroke-dasharray="678.6"
+          stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-inner">
+        <div id="timer-display">25:00</div>
+        <div class="timer-mode-label" id="mode-label">作業中</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="timer-controls">
+      <button class="btn btn-icon" onclick="skipSession()" title="スキップ">⏭</button>
+      <button class="btn btn-start" id="btn-start" onclick="toggleTimer()">開始</button>
+      <button class="btn btn-icon" onclick="resetTimer()" title="リセット">↺</button>
+    </div>
+
+    <!-- Sessions -->
+    <div class="sessions" id="session-dots">
+      <div class="session-dot" id="dot-0"></div>
+      <div class="session-dot" id="dot-1"></div>
+      <div class="session-dot" id="dot-2"></div>
+      <div class="session-dot" id="dot-3"></div>
+      <span class="sessions-label" id="session-label">0 / 4 セッション完了</span>
+    </div>
+
+    <!-- Time settings -->
+    <div class="settings-row">
+      <div class="setting-item">
+        <span class="setting-label">作業</span>
+        <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()"> 分
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">休憩</span>
+        <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()"> 分
+      </div>
+      <div class="setting-item">
+        <span class="setting-label">長休憩</span>
+        <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()"> 分
+      </div>
+    </div>
+
+    <!-- Toggles row -->
+    <div style="display:flex; gap:20px; align-items:center;">
+      <label class="sound-row">
+        <div class="toggle on" id="sound-toggle" onclick="toggleSound()"></div>
+        <span>通知音</span>
+      </label>
+      <label class="sound-row">
+        <div class="toggle on" id="bgm-toggle" onclick="toggleBgm()"></div>
+        <span>BGM</span>
+      </label>
+    </div>
+
+    <!-- Auto pause notice -->
+    <div class="auto-notice">
+      <span class="auto-badge">AUTO</span>
+      休憩中はBGMを一時停止
+    </div>
+
+  </div>
+
+  <!-- ── BGM Panel ── -->
+  <div class="bgm-card">
+
+    <div class="bgm-header">
+      <span class="bgm-title">作業用 BGM</span>
+      <a class="channel-link" href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener">
+        @ChillxGirl-YT ↗
+      </a>
+    </div>
+
+    <div class="yt-wrap">
+      <div id="yt-placeholder">
+        <span class="play-icon">▶</span>
+        <p>下の動画を選んで再生してください</p>
+      </div>
+      <div id="yt-frame" style="display:none; width:100%; aspect-ratio:16/9;"></div>
+    </div>
+
+    <!-- Video selector -->
+    <div class="video-selector">
+      <div class="video-thumb" id="thumb-0" onclick="selectVideo(0)">
+        <img src="https://img.youtube.com/vi/dWWXrB8pErU/mqdefault.jpg" alt="Lofi BGM Vol.1" loading="lazy">
+        <div class="video-thumb-overlay">▶</div>
+      </div>
+      <div class="video-thumb" id="thumb-1" onclick="selectVideo(1)">
+        <img src="https://img.youtube.com/vi/VH8bojgRJWk/mqdefault.jpg" alt="Lofi BGM Vol.2" loading="lazy">
+        <div class="video-thumb-overlay">▶</div>
+      </div>
+      <div class="video-thumb" id="thumb-2" onclick="selectVideo(2)">
+        <img src="https://img.youtube.com/vi/epy4bMdQKzU/mqdefault.jpg" alt="Lofi BGM Vol.3" loading="lazy">
+        <div class="video-thumb-overlay">▶</div>
+      </div>
+    </div>
+
+    <div class="bgm-desc">
+      <strong>ChillxGirl-YT</strong> のLofi BGMで集中力アップ。<br>
+      作業セッション中は自動で再生し、休憩時は一時停止します。<br>
+      <br>
+      チャンネル登録して新曲をチェック →
+      <a href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener"
+         style="color:var(--accent);">YouTube @ChillxGirl-YT</a>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  <a href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener">@ChillxGirl-YT</a>
+  &nbsp;|&nbsp; Lofi BGM × Pomodoro
+</footer>
+
+<!-- Notification sound (Web Audio API) -->
+<script>
+// ─── Config ───────────────────────────────────────────────
+const DEFAULT_TIMES = { work: 25, break: 5, lbreak: 15 };
+
+// ─── State ────────────────────────────────────────────────
+let state = {
+  mode:      'work',   // 'work' | 'break' | 'lbreak'
+  running:   false,
+  remaining: DEFAULT_TIMES.work * 60,
+  total:     DEFAULT_TIMES.work * 60,
+  sessions:  0,
+  sound:     true,
+  bgm:       true,
+  times:     { ...DEFAULT_TIMES },
+};
+let interval = null;
+let ytPlayer  = null;  // YouTube IFrame API player instance
+let ytReady   = false;
+
+// ─── Timer Logic ──────────────────────────────────────────
+function toggleTimer() {
+  if (state.running) {
+    pauseTimer();
+  } else {
+    startTimer();
+  }
+}
+
+function startTimer() {
+  state.running = true;
+  document.getElementById('btn-start').textContent = '一時停止';
+  if (ytPlayer && ytReady && state.mode === 'work' && state.bgm) {
+    ytPlayer.playVideo();
+  }
+  interval = setInterval(tick, 1000);
+}
+
+function pauseTimer() {
+  state.running = false;
+  document.getElementById('btn-start').textContent = '再開';
+  clearInterval(interval);
+  if (ytPlayer && ytReady) ytPlayer.pauseVideo();
+}
+
+function resetTimer() {
+  clearInterval(interval);
+  state.running = false;
+  state.remaining = state.total;
+  document.getElementById('btn-start').textContent = '開始';
+  if (ytPlayer && ytReady) ytPlayer.pauseVideo();
+  updateDisplay();
+}
+
+function skipSession() {
+  clearInterval(interval);
+  state.running = false;
+  onSessionEnd();
+}
+
+function tick() {
+  state.remaining--;
+  updateDisplay();
+  if (state.remaining <= 0) {
+    clearInterval(interval);
+    state.running = false;
+    onSessionEnd();
+  }
+}
+
+function onSessionEnd() {
+  if (state.sound) playChime();
+
+  if (state.mode === 'work') {
+    state.sessions++;
+    updateSessionDots();
+    // 4セッション毎に長休憩
+    const nextMode = (state.sessions % 4 === 0) ? 'lbreak' : 'break';
+    setMode(nextMode);
+    // 休憩中はBGM停止
+    if (ytPlayer && ytReady) ytPlayer.pauseVideo();
+  } else {
+    setMode('work');
+    // 作業再開時にBGM自動再生（BGM ONの場合）
+    if (ytPlayer && ytReady && state.bgm) ytPlayer.playVideo();
+  }
+  // 自動開始
+  startTimer();
+}
+
+// ─── Mode ─────────────────────────────────────────────────
+function setMode(mode) {
+  state.mode = mode;
+  const mins = state.times[mode];
+  state.total = mins * 60;
+  state.remaining = state.total;
+  state.running = false;
+  clearInterval(interval);
+  document.getElementById('btn-start').textContent = '開始';
+
+  // Tabs
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+
+  // Ring color
+  const colors = { work: 'var(--accent)', break: 'var(--break)', lbreak: 'var(--lbreak)' };
+  document.getElementById('ring').style.stroke = colors[mode];
+
+  // Label
+  const labels = { work: '作業中', break: '休憩中', lbreak: '長休憩中' };
+  document.getElementById('mode-label').textContent = labels[mode];
+
+  updateDisplay();
+}
+
+// ─── Display ──────────────────────────────────────────────
+function updateDisplay() {
+  const m = String(Math.floor(state.remaining / 60)).padStart(2, '0');
+  const s = String(state.remaining % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+  document.title = `${m}:${s} - Pomodoro`;
+
+  // Ring progress
+  const CIRC = 678.6;
+  const pct  = state.total > 0 ? state.remaining / state.total : 1;
+  document.getElementById('ring').style.strokeDashoffset = CIRC * (1 - pct);
+}
+
+function updateSessionDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    dot.classList.toggle('done', i < (state.sessions % 4 === 0 && state.sessions > 0 ? 4 : state.sessions % 4));
+  }
+  document.getElementById('session-label').textContent =
+    `${state.sessions} セッション完了`;
+}
+
+// ─── Settings ─────────────────────────────────────────────
+function applySettings() {
+  state.times.work   = parseInt(document.getElementById('set-work').value)   || 25;
+  state.times.break  = parseInt(document.getElementById('set-break').value)  || 5;
+  state.times.lbreak = parseInt(document.getElementById('set-lbreak').value) || 15;
+  // 現在のモードに反映
+  setMode(state.mode);
+}
+
+// ─── Sound / BGM ──────────────────────────────────────────
+function toggleSound() {
+  state.sound = !state.sound;
+  document.getElementById('sound-toggle').classList.toggle('on', state.sound);
+}
+
+function toggleBgm() {
+  state.bgm = !state.bgm;
+  document.getElementById('bgm-toggle').classList.toggle('on', state.bgm);
+  if (!state.bgm) {
+    if (ytPlayer && ytReady) ytPlayer.pauseVideo();
+  } else {
+    // OFFからONに戻したとき、作業中ならすぐ再生
+    if (ytPlayer && ytReady && state.running && state.mode === 'work') {
+      ytPlayer.playVideo();
+    }
+  }
+}
+
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    // ── 短く柔らかい「ポッ」という一音 ──
+    // sine波を極小音量・素早く立ち上げ→ゆっくり消す
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type            = 'sine';
+    osc.frequency.value = 880; // A5: 高すぎず低すぎない柔らかい音域
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.10, now + 0.008); // 8ms で立ち上がり
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5); // 0.5秒でフェードアウト
+
+    osc.start(now);
+    osc.stop(now + 0.5);
+
+  } catch (e) {}
+}
+
+// ─── Theme ────────────────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const btn    = document.getElementById('theme-btn');
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    btn.textContent = '🌙 ダーク';
+    localStorage.setItem('theme', 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    btn.textContent = '☀️ ライト';
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// 前回のテーマを復元
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('theme-btn').textContent = '☀️ ライト';
+  }
+})();
+
+// ─── YouTube IFrame API ───────────────────────────────────
+const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU'];
+let activeThumb  = -1;
+let ytApiLoaded  = false;
+
+// YouTube IFrame API スクリプトを動的ロード
+function loadYTApi() {
+  if (ytApiLoaded) return;
+  ytApiLoaded = true;
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+}
+
+// API 準備完了コールバック（グローバル必須）
+window.onYouTubeIframeAPIReady = function() {
+  // 何もしない。selectVideo() で都度生成する
+};
+
+function selectVideo(index) {
+  loadYTApi();
+  const videoId = VIDEO_IDS[index];
+
+  // サムネイルのactive切り替え
+  if (activeThumb >= 0) {
+    document.getElementById(`thumb-${activeThumb}`).classList.remove('active');
+  }
+  activeThumb = index;
+  document.getElementById(`thumb-${index}`).classList.add('active');
+
+  // placeholder 非表示 / コンテナ表示
+  document.getElementById('yt-placeholder').style.display = 'none';
+  const container = document.getElementById('yt-frame');
+  container.style.display = 'block';
+
+  // 既存 player を破棄
+  if (ytPlayer) {
+    try { ytPlayer.destroy(); } catch(e) {}
+    ytPlayer = null;
+    ytReady  = false;
+  }
+
+  // プレイヤー用 div を再生成
+  container.innerHTML = '<div id="yt-player-el"></div>';
+
+  // YT.Player で生成（API未ロード時は onYouTubeIframeAPIReady に委譲しない
+  // ためポーリングで待つ）
+  function createPlayer() {
+    if (typeof YT === 'undefined' || !YT.Player) {
+      setTimeout(createPlayer, 200);
+      return;
+    }
+    ytPlayer = new YT.Player('yt-player-el', {
+      width:  '100%',
+      height: '100%',
+      videoId: videoId,
+      playerVars: {
+        autoplay:       1,
+        rel:            0,
+        modestbranding: 1,
+        playsinline:    1,
+      },
+      events: {
+        onReady: () => { ytReady = true; },
+      },
+    });
+  }
+  createPlayer();
+}
+
+// ─── Init ─────────────────────────────────────────────────
+updateDisplay();
+</script>
+
+</body>
+</html>
