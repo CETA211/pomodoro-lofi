@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pomodoro Timer × Lofi BGM | ChillxGirl-YT</title>
+  <title>ポモドーロタイマー × 作業用BGM Lofi | 無料 集中タイマー | ChillxGirl-YT</title>
+  <meta name="description" content="無料のポモドーロタイマー。作業用BGM（Lofi）を聴きながら集中力アップ。休憩中は自動でBGMを一時停止。勉強・テレワーク・作業に最適。">
+
+  <!-- OGP -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://ceta211.github.io/pomodoro-lofi/">
+  <meta property="og:title"       content="ポモドーロタイマー × 作業用BGM Lofi | ChillxGirl-YT">
+  <meta property="og:description" content="無料のポモドーロタイマー。Lofi BGMで集中力アップ。休憩中は自動でBGMを一時停止。勉強・テレワーク・作業に最適。">
+  <meta property="og:image"       content="https://img.youtube.com/vi/dWWXrB8pErU/maxresdefault.jpg">
+  <meta name="twitter:card"       content="summary_large_image">
+  <meta name="twitter:title"      content="ポモドーロタイマー × 作業用BGM Lofi | ChillxGirl-YT">
+  <meta name="twitter:description" content="無料のポモドーロタイマー。Lofi BGMで集中力アップ。">
+  <meta name="twitter:image"      content="https://img.youtube.com/vi/dWWXrB8pErU/maxresdefault.jpg">
+
   <style>
     /* ─── Reset & Vars ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -201,17 +214,28 @@
     .btn-start {
       background: var(--accent);
       color: white;
-      padding: 12px 42px;
-      font-size: 16px;
-      min-width: 140px;
+      padding: 12px 0;
+      font-size: 28px;
+      width: 72px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
     }
     .btn-start:hover { filter: brightness(1.15); }
     .btn-icon {
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--muted);
-      padding: 10px 14px;
-      font-size: 16px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border-radius: 50%;
+      padding: 0;
     }
     .btn-icon:hover { color: var(--text); border-color: var(--text); }
 
@@ -237,9 +261,10 @@
     /* Settings row */
     .settings-row {
       display: flex;
-      gap: 14px;
+      gap: 10px;
       width: 100%;
       justify-content: center;
+      flex-wrap: wrap;
     }
     .setting-item {
       display: flex;
@@ -247,7 +272,9 @@
       align-items: center;
       gap: 4px;
     }
-    .setting-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .setting-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+    .setting-input-row { display: flex; align-items: center; gap: 4px; }
+    .setting-unit { font-size: 12px; color: var(--muted); }
     .setting-input {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -255,8 +282,8 @@
       color: var(--text);
       font-size: 14px;
       text-align: center;
-      width: 60px;
-      padding: 5px 8px;
+      width: 52px;
+      padding: 5px 4px;
       outline: none;
     }
     .setting-input:focus { border-color: var(--accent); }
@@ -358,6 +385,11 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
+    @media (max-width: 480px) {
+      .video-selector {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
     .video-thumb {
       position: relative;
       border-radius: 8px;
@@ -439,10 +471,14 @@
         padding: 20px 16px 32px;
       }
       .bgm-card { order: -1; }
+      .mode-tab { padding: 6px 12px; font-size: 12px; }
+      .settings-row { gap: 8px; }
     }
     @media (max-width: 400px) {
-      #timer-display { font-size: 42px; }
+      #timer-display { font-size: 40px; }
       .timer-ring-wrap { width: 200px; height: 200px; }
+      .timer-card { padding: 24px 16px 20px; }
+      .mode-tab { padding: 5px 8px; font-size: 11px; }
     }
   </style>
 </head>
@@ -486,7 +522,7 @@
     <!-- Controls -->
     <div class="timer-controls">
       <button class="btn btn-icon" onclick="skipSession()" title="スキップ">⏭</button>
-      <button class="btn btn-start" id="btn-start" onclick="toggleTimer()">開始</button>
+      <button class="btn btn-start" id="btn-start" onclick="toggleTimer()">▶</button>
       <button class="btn btn-icon" onclick="resetTimer()" title="リセット">↺</button>
     </div>
 
@@ -503,15 +539,24 @@
     <div class="settings-row">
       <div class="setting-item">
         <span class="setting-label">作業</span>
-        <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()"> 分
+        <div class="setting-input-row">
+          <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()">
+          <span class="setting-unit">分</span>
+        </div>
       </div>
       <div class="setting-item">
         <span class="setting-label">休憩</span>
-        <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()"> 分
+        <div class="setting-input-row">
+          <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()">
+          <span class="setting-unit">分</span>
+        </div>
       </div>
       <div class="setting-item">
         <span class="setting-label">長休憩</span>
-        <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()"> 分
+        <div class="setting-input-row">
+          <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()">
+          <span class="setting-unit">分</span>
+        </div>
       </div>
     </div>
 
@@ -567,6 +612,14 @@
         <img src="https://img.youtube.com/vi/epy4bMdQKzU/mqdefault.jpg" alt="Lofi BGM Vol.3" loading="lazy">
         <div class="video-thumb-overlay">▶</div>
       </div>
+      <div class="video-thumb" id="thumb-3" onclick="selectVideo(3)">
+        <img src="https://img.youtube.com/vi/VIDEO_ID_4/mqdefault.jpg" alt="Lofi BGM Vol.4" loading="lazy">
+        <div class="video-thumb-overlay">▶</div>
+      </div>
+      <div class="video-thumb" id="thumb-4" onclick="selectVideo(4)">
+        <img src="https://img.youtube.com/vi/VIDEO_ID_5/mqdefault.jpg" alt="Lofi BGM Vol.5" loading="lazy">
+        <div class="video-thumb-overlay">▶</div>
+      </div>
     </div>
 
     <div class="bgm-desc">
@@ -618,7 +671,7 @@ function toggleTimer() {
 
 function startTimer() {
   state.running = true;
-  document.getElementById('btn-start').textContent = '一時停止';
+  document.getElementById('btn-start').textContent = '⏸';
   if (ytPlayer && ytReady && state.mode === 'work' && state.bgm) {
     ytPlayer.playVideo();
   }
@@ -627,7 +680,7 @@ function startTimer() {
 
 function pauseTimer() {
   state.running = false;
-  document.getElementById('btn-start').textContent = '再開';
+  document.getElementById('btn-start').textContent = '▶';
   clearInterval(interval);
   if (ytPlayer && ytReady) ytPlayer.pauseVideo();
 }
@@ -636,7 +689,7 @@ function resetTimer() {
   clearInterval(interval);
   state.running = false;
   state.remaining = state.total;
-  document.getElementById('btn-start').textContent = '開始';
+  document.getElementById('btn-start').textContent = '▶';
   if (ytPlayer && ytReady) ytPlayer.pauseVideo();
   updateDisplay();
 }
@@ -685,7 +738,7 @@ function setMode(mode) {
   state.remaining = state.total;
   state.running = false;
   clearInterval(interval);
-  document.getElementById('btn-start').textContent = '開始';
+  document.getElementById('btn-start').textContent = '▶';
 
   // Tabs
   document.querySelectorAll('.mode-tab').forEach(t => {
@@ -804,7 +857,7 @@ function toggleTheme() {
 })();
 
 // ─── YouTube IFrame API ───────────────────────────────────
-const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU'];
+const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', 'VIDEO_ID_4', 'VIDEO_ID_5'];
 let activeThumb  = -1;
 let ytApiLoaded  = false;
 
