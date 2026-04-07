@@ -149,46 +149,6 @@
       color: var(--muted);
       margin-bottom: 12px;
     }
-    .video-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .video-input-row input {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 13px;
-      padding: 7px 10px;
-      outline: none;
-    }
-    .video-input-row input:focus { border-color: var(--accent); }
-    .video-input-row input::placeholder { color: var(--muted); opacity: 0.6; }
-    .btn-remove {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 6px 8px;
-      font-size: 14px;
-      line-height: 1;
-    }
-    .btn-remove:hover { color: #e57373; border-color: #e57373; }
-    .btn-add-video {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 13px;
-      padding: 7px 14px;
-      margin-top: 4px;
-    }
-    .btn-add-video:hover { border-color: var(--accent); }
     .modal-actions {
       display: flex;
       gap: 8px;
@@ -633,14 +593,48 @@
     </div>
 
     <div class="modal-section">
-      <div class="modal-section-title">BGM Videos</div>
-      <div id="video-inputs"></div>
-      <button class="btn-add-video" onclick="addVideoInput()">+ Add video</button>
+      <div class="modal-section-title">Timer</div>
+      <div class="settings-row">
+        <div class="setting-item">
+          <span class="setting-label">Focus</span>
+          <div class="setting-input-row">
+            <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()">
+            <span class="setting-unit">min</span>
+          </div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Break</span>
+          <div class="setting-input-row">
+            <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()">
+            <span class="setting-unit">min</span>
+          </div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Long Break</span>
+          <div class="setting-input-row">
+            <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()">
+            <span class="setting-unit">min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section" style="margin-bottom:8px;">
+      <div class="modal-section-title">Preferences</div>
+      <div style="display:flex; gap:20px; align-items:center;">
+        <label class="sound-row">
+          <div class="toggle on" id="sound-toggle" onclick="toggleSound()"></div>
+          <span>Sound</span>
+        </label>
+        <label class="sound-row">
+          <div class="toggle on" id="bgm-toggle" onclick="toggleBgm()"></div>
+          <span>BGM</span>
+        </label>
+      </div>
     </div>
 
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
-      <button class="btn-save" onclick="saveSettings()">Save</button>
+      <button class="btn-save" onclick="closeSettings()">Done</button>
     </div>
   </div>
 </div>
@@ -707,43 +701,6 @@
       <div class="session-dot" id="dot-2"></div>
       <div class="session-dot" id="dot-3"></div>
       <span class="sessions-label" id="session-label">0 sessions</span>
-    </div>
-
-    <!-- Time settings -->
-    <div class="settings-row">
-      <div class="setting-item">
-        <span class="setting-label">Focus</span>
-        <div class="setting-input-row">
-          <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()">
-          <span class="setting-unit">min</span>
-        </div>
-      </div>
-      <div class="setting-item">
-        <span class="setting-label">Break</span>
-        <div class="setting-input-row">
-          <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()">
-          <span class="setting-unit">min</span>
-        </div>
-      </div>
-      <div class="setting-item">
-        <span class="setting-label">Long Break</span>
-        <div class="setting-input-row">
-          <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()">
-          <span class="setting-unit">min</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toggles row -->
-    <div style="display:flex; gap:20px; align-items:center;">
-      <label class="sound-row">
-        <div class="toggle on" id="sound-toggle" onclick="toggleSound()"></div>
-        <span>Sound</span>
-      </label>
-      <label class="sound-row">
-        <div class="toggle on" id="bgm-toggle" onclick="toggleBgm()"></div>
-        <span>BGM</span>
-      </label>
     </div>
 
   </div>
@@ -985,16 +942,8 @@ function toggleTheme() {
 })();
 
 // ─── YouTube IFrame API ───────────────────────────────────
-let VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', '8JSB-CdLeoY', 'zPZgTtF2uLw'];
-
-(function() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('bgm_videos'));
-    if (Array.isArray(saved) && saved.length > 0) VIDEO_IDS = saved;
-  } catch(e) {}
-})();
-
-let N = VIDEO_IDS.length;
+const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', '8JSB-CdLeoY', 'zPZgTtF2uLw'];
+const N = VIDEO_IDS.length;
 let activeIndex = 0;
 let ytApiLoaded = false;
 let sliding     = false;
@@ -1102,20 +1051,7 @@ window.addEventListener('resize', () => {
 });
 
 // ─── Settings Modal ────────────────────────────────────────
-function extractVideoId(input) {
-  input = input.trim();
-  const m = input.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
-  if (m) return m[1];
-  if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;
-  return null;
-}
-
 function openSettings() {
-  const container = document.getElementById('video-inputs');
-  container.innerHTML = '';
-  VIDEO_IDS.forEach(id => {
-    addVideoInputRow(container, `https://www.youtube.com/watch?v=${id}`);
-  });
   document.getElementById('modal-overlay').classList.add('open');
 }
 
@@ -1125,45 +1061,6 @@ function closeSettings() {
 
 function closeSettingsOnOverlay(e) {
   if (e.target === document.getElementById('modal-overlay')) closeSettings();
-}
-
-function addVideoInput() {
-  addVideoInputRow(document.getElementById('video-inputs'), '');
-}
-
-function addVideoInputRow(container, value) {
-  const row = document.createElement('div');
-  row.className = 'video-input-row';
-  row.innerHTML = `
-    <input type="text" placeholder="YouTube URL or video ID" value="${value}">
-    <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>
-  `;
-  container.appendChild(row);
-}
-
-function saveSettings() {
-  const inputs = document.querySelectorAll('#video-inputs .video-input-row input');
-  const newIds = [];
-  inputs.forEach(inp => {
-    const id = extractVideoId(inp.value);
-    if (id) newIds.push(id);
-  });
-  if (newIds.length === 0) {
-    alert('Please add at least one valid YouTube URL.');
-    return;
-  }
-  VIDEO_IDS = newIds;
-  N = VIDEO_IDS.length;
-  localStorage.setItem('bgm_videos', JSON.stringify(VIDEO_IDS));
-  activeIndex = 0;
-  if (ytPlayer) {
-    try { ytPlayer.destroy(); } catch(e) {}
-    ytPlayer = null;
-    ytReady  = false;
-  }
-  buildCarousel();
-  selectVideo(0);
-  closeSettings();
 }
 
 // ─── Init ─────────────────────────────────────────────────
