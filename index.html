@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ポモドーロタイマー × 作業用BGM Lofi | 無料 集中タイマー | ChillxGirl-YT</title>
-  <meta name="description" content="無料のポモドーロタイマー。作業用BGM（Lofi）を聴きながら集中力アップ。休憩中は自動でBGMを一時停止。勉強・テレワーク・作業に最適。">
+  <title>Pomodoro Timer × Lofi BGM | Focus Timer | ChillxGirl-YT</title>
+  <meta name="description" content="Free Pomodoro timer with Lofi BGM. Boost focus while listening to chill music. BGM auto-pauses during breaks.">
 
   <!-- OGP -->
   <meta property="og:type"        content="website">
   <meta property="og:url"         content="https://ceta211.github.io/pomodoro-lofi/">
-  <meta property="og:title"       content="ポモドーロタイマー × 作業用BGM Lofi | ChillxGirl-YT">
-  <meta property="og:description" content="無料のポモドーロタイマー。Lofi BGMで集中力アップ。休憩中は自動でBGMを一時停止。勉強・テレワーク・作業に最適。">
+  <meta property="og:title"       content="Pomodoro Timer × Lofi BGM | ChillxGirl-YT">
+  <meta property="og:description" content="Free Pomodoro timer with Lofi BGM. Boost your focus. BGM auto-pauses during breaks.">
   <meta property="og:image"       content="https://img.youtube.com/vi/dWWXrB8pErU/maxresdefault.jpg">
   <meta name="twitter:card"       content="summary_large_image">
-  <meta name="twitter:title"      content="ポモドーロタイマー × 作業用BGM Lofi | ChillxGirl-YT">
-  <meta name="twitter:description" content="無料のポモドーロタイマー。Lofi BGMで集中力アップ。">
+  <meta name="twitter:title"      content="Pomodoro Timer × Lofi BGM | ChillxGirl-YT">
+  <meta name="twitter:description" content="Free Pomodoro timer. Lofi BGM boosts your focus.">
   <meta name="twitter:image"      content="https://img.youtube.com/vi/dWWXrB8pErU/maxresdefault.jpg">
 
   <style>
@@ -66,10 +66,15 @@
       background-attachment: fixed;
     }
 
-    /* ─── Theme toggle ─── */
-    .theme-btn {
+    /* ─── Fixed top-right buttons ─── */
+    .top-btns {
       position: fixed;
       top: 16px; right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+    .theme-btn, .gear-btn {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -78,10 +83,139 @@
       color: var(--muted);
       cursor: pointer;
       transition: all .2s;
-      z-index: 100;
       box-shadow: var(--shadow);
     }
-    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+    .gear-btn {
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+    }
+    .theme-btn:hover, .gear-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ─── Settings Modal ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 4px;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-section { margin-bottom: 24px; }
+    .modal-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .video-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .video-input-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none;
+    }
+    .video-input-row input:focus { border-color: var(--accent); }
+    .video-input-row input::placeholder { color: var(--muted); opacity: 0.6; }
+    .btn-remove {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px 8px;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .btn-remove:hover { color: #e57373; border-color: #e57373; }
+    .btn-add-video {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 7px 14px;
+      margin-top: 4px;
+    }
+    .btn-add-video:hover { border-color: var(--accent); }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-cancel {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+    .btn-save {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 20px;
+    }
+    .btn-save:hover { filter: brightness(1.1); }
 
     /* ─── Header ─── */
     header {
@@ -367,7 +501,6 @@
       position: relative;
       overflow: hidden;
       border-radius: var(--radius);
-      /* scale overflow を見せるため上下にパディング */
       padding: 10px 0;
     }
     .carousel-track {
@@ -449,25 +582,6 @@
     }
     .bgm-desc strong { color: var(--text); }
 
-    /* Auto-pause notice */
-    .auto-notice {
-      font-size: 12px;
-      color: var(--muted);
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .auto-badge {
-      font-size: 11px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 7px;
-      color: var(--accent2);
-    }
-
     /* ─── Footer ─── */
     footer {
       text-align: center;
@@ -500,12 +614,41 @@
 </head>
 <body>
 
-<button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙 ダーク</button>
+<!-- Fixed top-right buttons -->
+<div class="top-btns">
+  <button class="gear-btn" id="gear-btn" onclick="openSettings()" title="Settings">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+    </svg>
+  </button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeSettingsOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Settings</span>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">BGM Videos</div>
+      <div id="video-inputs"></div>
+      <button class="btn-add-video" onclick="addVideoInput()">+ Add video</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="btn-save" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
 
 <header>
   <h1>Pomodoro Timer</h1>
   <p style="margin-top:6px; font-size:13px; color:var(--muted);">
-    集中作業 × <a href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener">Lofi BGM</a> で生産性UP
+    Focus × <a href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener">Lofi BGM</a> = Productivity
   </p>
 </header>
 
@@ -516,9 +659,9 @@
 
     <!-- Mode tabs -->
     <div class="mode-tabs">
-      <button class="mode-tab active" data-mode="work"   onclick="setMode('work')">作業</button>
-      <button class="mode-tab"        data-mode="break"  onclick="setMode('break')">休憩</button>
-      <button class="mode-tab"        data-mode="lbreak" onclick="setMode('lbreak')">長休憩</button>
+      <button class="mode-tab active" data-mode="work"   onclick="setMode('work')">Focus</button>
+      <button class="mode-tab"        data-mode="break"  onclick="setMode('break')">Break</button>
+      <button class="mode-tab"        data-mode="lbreak" onclick="setMode('lbreak')">Long Break</button>
     </div>
 
     <!-- Circular timer -->
@@ -531,13 +674,13 @@
       </svg>
       <div class="timer-inner">
         <div id="timer-display">25:00</div>
-        <div class="timer-mode-label" id="mode-label">作業中</div>
+        <div class="timer-mode-label" id="mode-label">Focus</div>
       </div>
     </div>
 
     <!-- Controls -->
     <div class="timer-controls">
-      <button class="btn btn-icon" onclick="skipSession()" title="スキップ">
+      <button class="btn btn-icon" onclick="skipSession()" title="Skip">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/>
         </svg>
@@ -550,7 +693,7 @@
           <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
         </svg>
       </button>
-      <button class="btn btn-icon" onclick="resetTimer()" title="リセット">
+      <button class="btn btn-icon" onclick="resetTimer()" title="Reset">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
         </svg>
@@ -563,30 +706,30 @@
       <div class="session-dot" id="dot-1"></div>
       <div class="session-dot" id="dot-2"></div>
       <div class="session-dot" id="dot-3"></div>
-      <span class="sessions-label" id="session-label">0 / 4 セッション完了</span>
+      <span class="sessions-label" id="session-label">0 sessions</span>
     </div>
 
     <!-- Time settings -->
     <div class="settings-row">
       <div class="setting-item">
-        <span class="setting-label">作業</span>
+        <span class="setting-label">Focus</span>
         <div class="setting-input-row">
           <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()">
-          <span class="setting-unit">分</span>
+          <span class="setting-unit">min</span>
         </div>
       </div>
       <div class="setting-item">
-        <span class="setting-label">休憩</span>
+        <span class="setting-label">Break</span>
         <div class="setting-input-row">
           <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()">
-          <span class="setting-unit">分</span>
+          <span class="setting-unit">min</span>
         </div>
       </div>
       <div class="setting-item">
-        <span class="setting-label">長休憩</span>
+        <span class="setting-label">Long Break</span>
         <div class="setting-input-row">
           <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()">
-          <span class="setting-unit">分</span>
+          <span class="setting-unit">min</span>
         </div>
       </div>
     </div>
@@ -595,18 +738,12 @@
     <div style="display:flex; gap:20px; align-items:center;">
       <label class="sound-row">
         <div class="toggle on" id="sound-toggle" onclick="toggleSound()"></div>
-        <span>通知音</span>
+        <span>Sound</span>
       </label>
       <label class="sound-row">
         <div class="toggle on" id="bgm-toggle" onclick="toggleBgm()"></div>
         <span>BGM</span>
       </label>
-    </div>
-
-    <!-- Auto pause notice -->
-    <div class="auto-notice">
-      <span class="auto-badge">AUTO</span>
-      休憩中はBGMを一時停止
     </div>
 
   </div>
@@ -615,7 +752,7 @@
   <div class="bgm-card">
 
     <div class="bgm-header">
-      <span class="bgm-title">作業用 BGM</span>
+      <span class="bgm-title">BGM</span>
       <a class="channel-link" href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener">
         @ChillxGirl-YT ↗
       </a>
@@ -629,10 +766,10 @@
     </div>
 
     <div class="bgm-desc">
-      <strong>ChillxGirl-YT</strong> のLofi BGMで集中力アップ。<br>
-      作業セッション中は自動で再生し、休憩時は一時停止します。<br>
+      <strong>ChillxGirl-YT</strong> — Lofi BGM to keep you in the zone.<br>
+      Plays automatically during focus sessions, pauses on breaks.<br>
       <br>
-      チャンネル登録して新曲をチェック →
+      Subscribe for new tracks →
       <a href="https://www.youtube.com/@ChillxGirl-YT" target="_blank" rel="noopener"
          style="color:var(--accent);">YouTube @ChillxGirl-YT</a>
     </div>
@@ -646,14 +783,13 @@
   &nbsp;|&nbsp; Lofi BGM × Pomodoro
 </footer>
 
-<!-- Notification sound (Web Audio API) -->
 <script>
 // ─── Config ───────────────────────────────────────────────
 const DEFAULT_TIMES = { work: 25, break: 5, lbreak: 15 };
 
 // ─── State ────────────────────────────────────────────────
 let state = {
-  mode:      'work',   // 'work' | 'break' | 'lbreak'
+  mode:      'work',
   running:   false,
   remaining: DEFAULT_TIMES.work * 60,
   total:     DEFAULT_TIMES.work * 60,
@@ -663,7 +799,7 @@ let state = {
   times:     { ...DEFAULT_TIMES },
 };
 let interval = null;
-let ytPlayer  = null;  // YouTube IFrame API player instance
+let ytPlayer  = null;
 let ytReady   = false;
 
 // ─── Timer Logic ──────────────────────────────────────────
@@ -727,17 +863,13 @@ function onSessionEnd() {
   if (state.mode === 'work') {
     state.sessions++;
     updateSessionDots();
-    // 4セッション毎に長休憩
     const nextMode = (state.sessions % 4 === 0) ? 'lbreak' : 'break';
     setMode(nextMode);
-    // 休憩中はBGM停止
     if (ytPlayer && ytReady) ytPlayer.pauseVideo();
   } else {
     setMode('work');
-    // 作業再開時にBGM自動再生（BGM ONの場合）
     if (ytPlayer && ytReady && state.bgm) ytPlayer.playVideo();
   }
-  // 自動開始
   startTimer();
 }
 
@@ -751,17 +883,14 @@ function setMode(mode) {
   clearInterval(interval);
   setPlayState(false);
 
-  // Tabs
   document.querySelectorAll('.mode-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.mode === mode);
   });
 
-  // Ring color
   const colors = { work: 'var(--accent)', break: 'var(--break)', lbreak: 'var(--lbreak)' };
   document.getElementById('ring').style.stroke = colors[mode];
 
-  // Label
-  const labels = { work: '作業中', break: '休憩中', lbreak: '長休憩中' };
+  const labels = { work: 'Focus', break: 'Break', lbreak: 'Long Break' };
   document.getElementById('mode-label').textContent = labels[mode];
 
   updateDisplay();
@@ -774,7 +903,6 @@ function updateDisplay() {
   document.getElementById('timer-display').textContent = `${m}:${s}`;
   document.title = `${m}:${s} - Pomodoro`;
 
-  // Ring progress
   const CIRC = 678.6;
   const pct  = state.total > 0 ? state.remaining / state.total : 1;
   document.getElementById('ring').style.strokeDashoffset = CIRC * (1 - pct);
@@ -786,7 +914,7 @@ function updateSessionDots() {
     dot.classList.toggle('done', i < (state.sessions % 4 === 0 && state.sessions > 0 ? 4 : state.sessions % 4));
   }
   document.getElementById('session-label').textContent =
-    `${state.sessions} セッション完了`;
+    `${state.sessions} session${state.sessions !== 1 ? 's' : ''} completed`;
 }
 
 // ─── Settings ─────────────────────────────────────────────
@@ -794,7 +922,6 @@ function applySettings() {
   state.times.work   = parseInt(document.getElementById('set-work').value)   || 25;
   state.times.break  = parseInt(document.getElementById('set-break').value)  || 5;
   state.times.lbreak = parseInt(document.getElementById('set-lbreak').value) || 15;
-  // 現在のモードに反映
   setMode(state.mode);
 }
 
@@ -810,7 +937,6 @@ function toggleBgm() {
   if (!state.bgm) {
     if (ytPlayer && ytReady) ytPlayer.pauseVideo();
   } else {
-    // OFFからONに戻したとき、作業中ならすぐ再生
     if (ytPlayer && ytReady && state.running && state.mode === 'work') {
       ytPlayer.playVideo();
     }
@@ -821,25 +947,17 @@ function playChime() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const now = ctx.currentTime;
-
-    // ── 短く柔らかい「ポッ」という一音 ──
-    // sine波を極小音量・素早く立ち上げ→ゆっくり消す
     const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
-
     osc.type            = 'sine';
-    osc.frequency.value = 880; // A5: 高すぎず低すぎない柔らかい音域
-
+    osc.frequency.value = 880;
     osc.connect(gain);
     gain.connect(ctx.destination);
-
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.10, now + 0.008); // 8ms で立ち上がり
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5); // 0.5秒でフェードアウト
-
+    gain.gain.linearRampToValueAtTime(0.10, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
     osc.start(now);
     osc.stop(now + 0.5);
-
   } catch (e) {}
 }
 
@@ -849,28 +967,35 @@ function toggleTheme() {
   const btn    = document.getElementById('theme-btn');
   if (isDark) {
     document.documentElement.removeAttribute('data-theme');
-    btn.textContent = '🌙 ダーク';
+    btn.textContent = '🌙 Dark';
     localStorage.setItem('theme', 'light');
   } else {
     document.documentElement.setAttribute('data-theme', 'dark');
-    btn.textContent = '☀️ ライト';
+    btn.textContent = '☀️ Light';
     localStorage.setItem('theme', 'dark');
   }
 }
 
-// 前回のテーマを復元
 (function() {
   const saved = localStorage.getItem('theme');
   if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.getElementById('theme-btn').textContent = '☀️ ライト';
+    document.getElementById('theme-btn').textContent = '☀️ Light';
   }
 })();
 
 // ─── YouTube IFrame API ───────────────────────────────────
-const VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', '8JSB-CdLeoY', 'zPZgTtF2uLw'];
-const N = VIDEO_IDS.length;
-let activeIndex = 0;   // 中央に表示・再生中の動画index（これだけで管理）
+let VIDEO_IDS = ['dWWXrB8pErU', 'VH8bojgRJWk', 'epy4bMdQKzU', '8JSB-CdLeoY', 'zPZgTtF2uLw'];
+
+(function() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('bgm_videos'));
+    if (Array.isArray(saved) && saved.length > 0) VIDEO_IDS = saved;
+  } catch(e) {}
+})();
+
+let N = VIDEO_IDS.length;
+let activeIndex = 0;
 let ytApiLoaded = false;
 let sliding     = false;
 
@@ -895,7 +1020,6 @@ function getLayout() {
   const itemW = W * 0.70;
   const gap   = 10;
   const stride = itemW + gap;
-  // slot1（中央）をouterの中央に揃えるtranslateX
   const tx = (W - itemW) / 2 - stride;
   return { W, itemW, stride, tx };
 }
@@ -906,7 +1030,6 @@ function buildCarousel() {
   const { stride, tx } = getLayout();
 
   track.innerHTML = '';
-  // slot0=左ペーク, slot1=中央(active), slot2=右ペーク
   for (let slot = 0; slot < 3; slot++) {
     const idx = (activeIndex - 1 + slot + N * 10) % N;
     const isActive = slot === 1;
@@ -977,6 +1100,71 @@ window.addEventListener('resize', () => {
   track.style.transition = 'none';
   track.style.transform  = `translateX(${tx}px)`;
 });
+
+// ─── Settings Modal ────────────────────────────────────────
+function extractVideoId(input) {
+  input = input.trim();
+  const m = input.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;
+  return null;
+}
+
+function openSettings() {
+  const container = document.getElementById('video-inputs');
+  container.innerHTML = '';
+  VIDEO_IDS.forEach(id => {
+    addVideoInputRow(container, `https://www.youtube.com/watch?v=${id}`);
+  });
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function closeSettingsOnOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeSettings();
+}
+
+function addVideoInput() {
+  addVideoInputRow(document.getElementById('video-inputs'), '');
+}
+
+function addVideoInputRow(container, value) {
+  const row = document.createElement('div');
+  row.className = 'video-input-row';
+  row.innerHTML = `
+    <input type="text" placeholder="YouTube URL or video ID" value="${value}">
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function saveSettings() {
+  const inputs = document.querySelectorAll('#video-inputs .video-input-row input');
+  const newIds = [];
+  inputs.forEach(inp => {
+    const id = extractVideoId(inp.value);
+    if (id) newIds.push(id);
+  });
+  if (newIds.length === 0) {
+    alert('Please add at least one valid YouTube URL.');
+    return;
+  }
+  VIDEO_IDS = newIds;
+  N = VIDEO_IDS.length;
+  localStorage.setItem('bgm_videos', JSON.stringify(VIDEO_IDS));
+  activeIndex = 0;
+  if (ytPlayer) {
+    try { ytPlayer.destroy(); } catch(e) {}
+    ytPlayer = null;
+    ytReady  = false;
+  }
+  buildCarousel();
+  selectVideo(0);
+  closeSettings();
+}
 
 // ─── Init ─────────────────────────────────────────────────
 updateDisplay();
