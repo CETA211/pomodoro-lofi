@@ -206,12 +206,12 @@
     .main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 460px;
-      gap: 36px;
-      max-width: 1160px;
+      grid-template-columns: 1fr 575px;
+      gap: 44px;
+      max-width: 1260px;
       width: 100%;
       margin: 0 auto;
-      padding: 36px 28px 48px;
+      padding: 44px 32px 56px;
       align-items: start;
     }
 
@@ -220,11 +220,11 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 48px 36px 44px;
+      padding: 60px 44px 54px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
+      gap: 34px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -240,10 +240,10 @@
       border: 1px solid var(--border);
     }
     .mode-tab {
-      padding: 8px 20px;
+      padding: 10px 26px;
       border: none;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
       cursor: pointer;
       background: transparent;
@@ -261,8 +261,8 @@
     /* Circular timer */
     .timer-ring-wrap {
       position: relative;
-      width: 300px;
-      height: 300px;
+      width: 375px;
+      height: 375px;
       flex-shrink: 0;
     }
     .timer-ring-wrap svg {
@@ -291,14 +291,14 @@
       pointer-events: none;
     }
     #timer-display {
-      font-size: 68px;
+      font-size: 86px;
       font-weight: 700;
       letter-spacing: -.02em;
       font-variant-numeric: tabular-nums;
       line-height: 1;
     }
     .timer-mode-label {
-      font-size: 14px;
+      font-size: 16px;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .1em;
@@ -307,7 +307,7 @@
     /* Controls */
     .timer-controls {
       display: flex;
-      gap: 10px;
+      gap: 14px;
       align-items: center;
     }
     .btn {
@@ -322,8 +322,8 @@
       background: var(--accent);
       color: white;
       padding: 0;
-      width: 80px;
-      height: 80px;
+      width: 100px;
+      height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -334,8 +334,8 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--muted);
-      width: 56px;
-      height: 56px;
+      width: 70px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -352,44 +352,41 @@
       align-items: center;
     }
     .session-dot {
-      width: 12px; height: 12px;
+      width: 14px; height: 14px;
       border-radius: 50%;
       background: var(--border);
       transition: background .3s;
     }
     .session-dot.done { background: var(--accent); }
     .sessions-label {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--muted);
       margin-left: 6px;
     }
 
     /* Settings row */
     .settings-row {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      justify-content: center;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
     .setting-item {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
-    .setting-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
-    .setting-input-row { display: flex; align-items: center; gap: 4px; }
-    .setting-unit { font-size: 12px; color: var(--muted); }
+    .setting-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .setting-input-row { display: flex; align-items: center; gap: 6px; }
+    .setting-unit { font-size: 13px; color: var(--muted); }
     .setting-input {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text);
-      font-size: 14px;
+      font-size: 16px;
       text-align: center;
-      width: 52px;
-      padding: 5px 4px;
+      width: 100%;
+      padding: 8px 4px;
       outline: none;
     }
     .setting-input:focus { border-color: var(--accent); }
@@ -462,44 +459,31 @@
       display: block;
     }
 
-    /* ── Carousel ── */
+    /* ── Video Player ── */
     .carousel-outer {
       position: relative;
       overflow: hidden;
       border-radius: var(--radius);
-      padding: 10px 0;
     }
     .carousel-track {
       display: flex;
-      gap: 10px;
       will-change: transform;
-      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .carousel-item {
-      flex: 0 0 70%;
+      flex: 0 0 100%;
       aspect-ratio: 16/9;
       position: relative;
-      border-radius: 8px;
+      border-radius: var(--radius);
       overflow: hidden;
       background: #000;
-      cursor: pointer;
-      transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
-                  opacity  0.42s ease,
-                  box-shadow 0.42s ease;
-      transform: scale(0.68);
-      opacity: 0.45;
-    }
-    .carousel-item.active {
-      transform: scale(1);
-      opacity: 1;
-      cursor: default;
-      box-shadow: 0 4px 24px rgba(0,0,0,.4);
     }
     .carousel-item img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      cursor: pointer;
     }
     .carousel-item-overlay {
       position: absolute;
@@ -507,11 +491,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,.3);
+      background: rgba(0,0,0,.35);
       opacity: 0;
       transition: opacity .2s;
+      cursor: pointer;
     }
-    .carousel-item:hover .carousel-item-overlay { opacity: 1; }
+    .carousel-item img:hover ~ .carousel-item-overlay,
+    .carousel-item-overlay:hover { opacity: 1; }
     .carousel-arrow {
       position: absolute;
       top: 50%;
@@ -520,13 +506,13 @@
       background: rgba(0,0,0,.45);
       border: none;
       color: white;
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
       cursor: pointer;
       transition: background .15s;
       padding: 0;
@@ -534,8 +520,8 @@
       -webkit-appearance: none;
     }
     .carousel-arrow:hover { background: rgba(0,0,0,.7); }
-    .carousel-arrow.prev { left: 8px; }
-    .carousel-arrow.next { right: 8px; }
+    .carousel-arrow.prev { left: 10px; }
+    .carousel-arrow.next { right: 10px; }
 
     .bgm-desc {
       background: var(--surface);
@@ -560,6 +546,13 @@
     footer a:hover { text-decoration: underline; }
 
     /* ─── Responsive ─── */
+    @media (max-width: 1100px) {
+      .main { grid-template-columns: 1fr 480px; gap: 32px; }
+      .timer-ring-wrap { width: 320px; height: 320px; }
+      #timer-display { font-size: 72px; }
+      .btn-start { width: 86px; height: 86px; }
+      .btn-icon  { width: 60px; height: 60px; }
+    }
     @media (max-width: 900px) {
       .main {
         grid-template-columns: 1fr;
@@ -567,20 +560,21 @@
         padding: 20px 16px 32px;
       }
       .bgm-card { order: -1; }
-      .mode-tab { padding: 7px 16px; font-size: 13px; }
-      .timer-ring-wrap { width: 240px; height: 240px; }
-      #timer-display { font-size: 52px; }
-      .timer-mode-label { font-size: 12px; }
-      .btn-start { width: 64px; height: 64px; }
-      .btn-icon { width: 48px; height: 48px; }
+      .mode-tab { padding: 8px 18px; font-size: 14px; }
+      .timer-ring-wrap { width: 260px; height: 260px; }
+      #timer-display { font-size: 58px; }
+      .timer-mode-label { font-size: 13px; }
+      .timer-card { padding: 36px 24px 32px; gap: 24px; }
+      .btn-start { width: 72px; height: 72px; }
+      .btn-icon  { width: 52px; height: 52px; }
     }
     @media (max-width: 400px) {
-      #timer-display { font-size: 40px; }
-      .timer-ring-wrap { width: 200px; height: 200px; }
-      .timer-card { padding: 28px 16px 24px; gap: 20px; }
-      .mode-tab { padding: 6px 10px; font-size: 12px; }
-      .btn-start { width: 56px; height: 56px; }
-      .btn-icon { width: 42px; height: 42px; }
+      #timer-display { font-size: 44px; }
+      .timer-ring-wrap { width: 210px; height: 210px; }
+      .timer-card { padding: 28px 16px 24px; gap: 18px; }
+      .mode-tab { padding: 6px 12px; font-size: 12px; }
+      .btn-start { width: 60px; height: 60px; }
+      .btn-icon  { width: 44px; height: 44px; }
     }
   </style>
 </head>
@@ -602,35 +596,26 @@
     </div>
 
     <div class="modal-section">
-      <div class="modal-section-title">Timer</div>
+      <div class="modal-section-title">Duration (min)</div>
       <div class="settings-row">
         <div class="setting-item">
           <span class="setting-label">Focus</span>
-          <div class="setting-input-row">
-            <input class="setting-input" id="set-work"   type="number" value="25" min="1" max="90" onchange="applySettings()">
-            <span class="setting-unit">min</span>
-          </div>
+          <input class="setting-input" id="set-work" type="number" value="25" min="1" max="90" onchange="applySettings()">
         </div>
         <div class="setting-item">
           <span class="setting-label">Break</span>
-          <div class="setting-input-row">
-            <input class="setting-input" id="set-break"  type="number" value="5"  min="1" max="30" onchange="applySettings()">
-            <span class="setting-unit">min</span>
-          </div>
+          <input class="setting-input" id="set-break" type="number" value="5" min="1" max="30" onchange="applySettings()">
         </div>
         <div class="setting-item">
           <span class="setting-label">Long Break</span>
-          <div class="setting-input-row">
-            <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()">
-            <span class="setting-unit">min</span>
-          </div>
+          <input class="setting-input" id="set-lbreak" type="number" value="15" min="1" max="60" onchange="applySettings()">
         </div>
       </div>
     </div>
 
-    <div class="modal-section" style="margin-bottom:8px;">
+    <div class="modal-section" style="margin-bottom:16px;">
       <div class="modal-section-title">Preferences</div>
-      <div style="display:flex; gap:20px; align-items:center;">
+      <div style="display:flex; gap:24px; align-items:center;">
         <label class="sound-row">
           <div class="toggle on" id="sound-toggle" onclick="toggleSound()"></div>
           <span>Sound</span>
@@ -971,28 +956,26 @@ function loadYTApi() {
 }
 window.onYouTubeIframeAPIReady = function() {};
 
-// ─── Carousel ─────────────────────────────────────────────
+// ─── Carousel (single display) ────────────────────────────
 function getLayout() {
   const outer = document.getElementById('carousel-outer');
   const W     = outer ? outer.clientWidth : 300;
-  const itemW = W * 0.70;
-  const gap   = 10;
-  const stride = itemW + gap;
-  const tx = (W - itemW) / 2 - stride;
-  return { W, itemW, stride, tx };
+  const stride = W;
+  return { W, stride, tx: -stride };
 }
 
 function buildCarousel() {
   const track = document.getElementById('carousel-track');
   if (!track) return;
-  const { stride, tx } = getLayout();
+  const { tx } = getLayout();
 
   track.innerHTML = '';
+  // slot0=prev, slot1=active, slot2=next
   for (let slot = 0; slot < 3; slot++) {
     const idx = (activeIndex - 1 + slot + N * 10) % N;
     const isActive = slot === 1;
     const item = document.createElement('div');
-    item.className = 'carousel-item' + (isActive ? ' active' : '');
+    item.className = 'carousel-item';
 
     if (isActive) {
       item.appendChild(ytFrameEl);
@@ -1015,7 +998,7 @@ function slideVideo(dir) {
   if (!track) { sliding = false; return; }
   const { stride, tx } = getLayout();
 
-  track.style.transition = 'transform 0.42s cubic-bezier(0.4, 0, 0.2, 1)';
+  track.style.transition = 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)';
   track.style.transform  = `translateX(${tx - dir * stride}px)`;
 
   track.addEventListener('transitionend', function onEnd() {
